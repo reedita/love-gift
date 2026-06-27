@@ -34,7 +34,7 @@ body {
     z-index:9999;
 
     background-image:url("duck-corner.png");
-    background-size:cover;
+    background-size:contain;
     background-position:center;
     background-repeat:no-repeat;
 
@@ -159,9 +159,9 @@ body {
 }
 
 #frog {
-    width: 220px;
+    width: min(75vw, 280px);
     position: absolute;
-    left: 90px;
+    left: 50%;
     top: 20px;
     pointer-events: none;
     z-index: 1;
@@ -169,12 +169,12 @@ body {
 }
 
 @keyframes frogFloat {
-    0%,
-    100% {
-        transform: translateY(0px);
+    0%,100% {
+        transform: translateX(-50%) translateY(0);
     }
-    50% {
-        transform: translateY(-12px);
+
+    50%{
+        transform: translateX(-50%) translateY(-12px);
     }
 }
 #gift {
