@@ -667,7 +667,7 @@ body {
 
     animation:
     fadeInMessage 2s forwards;
-    animation-delay:2s;
+    animation-delay:0.7s;
 }
 
 @keyframes fadeInMessage{

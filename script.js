@@ -7,33 +7,39 @@ const angyImages = [
 
     "angy-duck-1.png",
     "angy-duck-2.png",
-    "angy-duck-3.png"
-
+    "angy-duck-3.png",
+    "angy-duck-4.png",
+    "angy-duck-5.png",
+    "angy-duck-6.png",
+    "angy-duck-7.png",
+    "angy-duck-8.png",
+    "angy-duck-9.png",
+    "angy-duck-10.png"
 ];
 
 function moveNoButton(){
 
-    noAttempts++;
+    const buttonWidth = noBtn.offsetWidth;
+    const buttonHeight = noBtn.offsetHeight;
 
-    const x =
-    (Math.random() * 250) - 125;
+    const maxX = window.innerWidth - buttonWidth;
+    const maxY = window.innerHeight - buttonHeight;
 
-    const y =
-    (Math.random() * 120) - 60;
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
 
-    noBtn.style.transform =
-    `translate(${x}px, ${y}px)`;
+    noBtn.style.position = "fixed";
+
+    noBtn.style.left = randomX + "px";
+    noBtn.style.top = randomY + "px";
 
     angyDuck.style.display = "block";
 
-    const imageIndex =
-    Math.min(
-        noAttempts - 1,
-        angyImages.length - 1
-    );
-
-    angyDuck.src =
-    angyImages[imageIndex];
+    angyDuck.src = angyImages[noAttempts];
+    noAttempts++;
+    if(noAttempts >= angyImages.length) {
+        noAttempts = 0;
+    }
 }
 yesBtn.addEventListener(
 "click",
@@ -149,10 +155,21 @@ gift.style.position = "absolute";
 function dodgeGift() {
     dodgeCount++;
 
-    const maxX = scene.clientWidth - gift.offsetWidth;
-    const maxY = scene.clientHeight - gift.offsetHeight;
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
+    const maxX =
+        window.innerWidth -
+        gift.offsetWidth;
+
+    const maxY =
+        window.innerHeight -
+        gift.offsetHeight;
+
+    const x =
+        Math.random() * maxX;
+
+    const y =
+        Math.random() * maxY;
+
+    gift.style.position = "fixed";
 
     gift.style.left = x + "px";
     gift.style.top = y + "px";
@@ -213,7 +230,7 @@ function startLoveScene() {
     // Trigger fireworks + heart section automatically once they're done.
     setTimeout(() => {
     showFinalHeartScene();
-}, 9000);
+}, 6500);
 }
 
 // ── "I LOVE YOU" HEART TEXT LOOP ──
@@ -270,19 +287,33 @@ function animateHeart() {
     heartOffset += 0.01; // controls how fast the text travels around the loop
     requestAnimationFrame(animateHeart);
 }
-noBtn.addEventListener(
-"mouseenter",
-moveNoButton
-);
+document.addEventListener("mousemove", (e) => {
 
-noBtn.addEventListener(
-"touchstart",
-(e)=>{
+    const rect = noBtn.getBoundingClientRect();
+
+    const distanceX =
+        Math.abs(e.clientX - (rect.left + rect.width / 2));
+
+    const distanceY =
+        Math.abs(e.clientY - (rect.top + rect.height / 2));
+
+    if (
+        distanceX < 120 &&
+        distanceY < 80
+    ) {
+        moveNoButton();
+    }
+});
+
+noBtn.addEventListener("click", (e) => {
+
     e.preventDefault();
-    moveNoButton();
-},
-{passive:false}
-);
+
+    alert("😤 Huh? Wrong answer. Try again.");
+
+    location.reload();
+});
+
 function showFinalHeartScene(){
 
     document.getElementById("loveScene").style.display = "none";
@@ -317,201 +348,103 @@ function start3DHeart(){
         resize
     );
 
-    const points = [];
+    const phrases = [
+        "I love you",
+        "forever",
+        "my jaan",
+        "always",
+        "my chagol",
+        "❤️"
+    ];
 
-    const text =
-    "I love you";
+    let angle = 0;
 
-    const totalLayers = 35;
+    const rings = 10;
+    const pointsPerRing = 60;
 
-    const pointsPerLayer = 30;
+    function heartPoint3D(t, ring, scale){
 
-    for(let j=0;
-        j<totalLayers;
-        j++){
+        const x =
+        16 * Math.pow(Math.sin(t), 3);
 
-        let zOffset =
-        (j/totalLayers)*2-1;
+        const y =
+        -(13 * Math.cos(t)
+        - 5 * Math.cos(2 * t)
+        - 2 * Math.cos(3 * t)
+        - Math.cos(4 * t));
 
-        let layerScale =
-        Math.sqrt(
-            1-zOffset*zOffset
-        );
+        const z =
+        (ring - (rings - 1) / 2) * 1.4;
 
-        for(let i=0;
-            i<pointsPerLayer;
-            i++){
-
-            let t =
-            (i/pointsPerLayer)
-            *Math.PI*2;
-
-            let x =
-            16*Math.pow(
-                Math.sin(t),3
-            );
-
-            let y =
-            13*Math.cos(t)
-            -5*Math.cos(2*t)
-            -2*Math.cos(3*t)
-            -Math.cos(4*t);
-
-            points.push({
-
-                x:
-                x*layerScale*18,
-
-                y:
-                -y*layerScale*18,
-
-                z:
-                zOffset*70,
-
-                angle:t
-            });
+        return{
+            x:x * scale,
+            y:y * scale,
+            z:z * scale
+        };
+    }
+ let basePoints = [];
+    let phraseIndex = 0;
+ 
+    function buildPoints(){
+        basePoints = [];
+        phraseIndex = 0;
+        const scale = Math.min(canvas.width, canvas.height) / 38;
+ 
+        for (let r = 0; r < rings; r++){
+            for (let i = 0; i < pointsPerRing; i++){
+                const t = (i / pointsPerRing) * Math.PI * 2;
+                const p = heartPoint3D(t, r, scale);
+                basePoints.push({
+                    ...p,
+                    text: phrases[phraseIndex++ % phrases.length]
+                });
+            }
         }
     }
-
-    let angleX = 0;
-    let angleY = 0;
-    let angleZ = 0;
+    buildPoints();
+    window.addEventListener("resize", buildPoints);
 
     function animate(){
-
-        ctx.fillStyle =
-        "rgba(8,4,6,0.12)";
-
-        ctx.fillRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
-        const cx =
-        canvas.width/2;
-
-        const cy =
-        canvas.height/2;
-
-        const fov = 400;
-
-        angleX += 0.001;
-        angleY += 0.002;
-        angleZ += 0.001;
-
-        const rotated =
-        points.map(p=>{
-
-            let x1 =
-            p.x*Math.cos(angleY)
-            -
-            p.z*Math.sin(angleY);
-
-            let z1 =
-            p.z*Math.cos(angleY)
-            +
-            p.x*Math.sin(angleY);
-
-            let y2 =
-            p.y*Math.cos(angleX)
-            -
-            z1*Math.sin(angleX);
-
-            let z2 =
-            z1*Math.cos(angleX)
-            +
-            p.y*Math.sin(angleX);
-
-            let x3 =
-            x1*Math.cos(angleZ)
-            -
-            y2*Math.sin(angleZ);
-
-            let y3 =
-            y2*Math.cos(angleZ)
-            +
-            x1*Math.sin(angleZ);
-
-            return{
-                x:x3,
-                y:y3,
-                z:z2,
-                angle:p.angle
+ 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+ 
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+ 
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+ 
+        const pts = basePoints.map(p => {
+            const rotX = p.x * cosA - p.z * sinA;
+            const rotZ = p.x * sinA + p.z * cosA;
+            const perspective = 320 / (320 + rotZ);
+ 
+            return {
+                x: cx + rotX * perspective,
+                y: cy + p.y * perspective,
+                z: rotZ,
+                perspective,
+                text: p.text
             };
         });
-
-        rotated.sort(
-            (a,b)=>b.z-a.z
-        );
-
-        rotated.forEach(p=>{
-
-            let scale =
-            fov/(fov+p.z);
-
-            let x =
-            p.x*scale+cx;
-
-            let y =
-            p.y*scale+cy;
-
-            let alpha =
-            (p.z+100)/200;
-
-            alpha =
-            Math.max(
-                0.15,
-                Math.min(
-                    1,
-                    alpha
-                )
-            );
-
-            ctx.save();
-
-            ctx.translate(
-                x,
-                y
-            );
-
-            ctx.rotate(
-                p.angle+angleZ
-            );
-
-            ctx.shadowColor =
-            "#ffb6d9";
-
-            ctx.shadowBlur = 12;
-
-            ctx.fillStyle =
-            `rgba(
-            255,
-            210,
-            225,
-            ${alpha}
-            )`;
-
-            ctx.font =
-            `${Math.max(
-                12,
-                16*scale
-            )}px Caveat`;
-
-            ctx.fillText(
-                text,
-                0,
-                0
-            );
-
-            ctx.restore();
+ 
+        // draw far points first so the near side overlaps correctly
+        pts.sort((a, b) => b.z - a.z);
+ 
+        pts.forEach(p => {
+            const alpha = Math.max(0.3, Math.min(1, 0.4 + p.perspective));
+ 
+            ctx.fillStyle = `rgba(255, 190, 220, ${alpha})`;
+            ctx.font = `${Math.max(10, 14 * p.perspective)}px Caveat`;
+            ctx.fillText(p.text, p.x, p.y);
         });
-
-        requestAnimationFrame(
-            animate
-        );
+ 
+        // SLOW, smooth rotation — this is the actual fix.
+        // 0.08/frame was nearly a full extra rotation every second; 0.006 is a gentle, steady spin.
+        angle += 0.006;
+ 
+        requestAnimationFrame(animate);
     }
-
+ 
     animate();
 }
